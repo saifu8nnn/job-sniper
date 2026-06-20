@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, FormEvent, ChangeEvent } from 'react';
+import { useState } from 'react';
 
 // --- Helper Functions ---
-function getFreshnessBadge(postedString: any) {
+function getFreshnessBadge(postedString) {
   if (!postedString) return "✨ Just posted";
   const lowerStr = postedString.toLowerCase();
   
@@ -48,7 +48,7 @@ const BuildingIcon = () => (
   </svg>
 );
 
-const CircularMatch = ({ percentage }: { percentage: number }) => {
+const CircularMatch = ({ percentage }) => {
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -67,13 +67,12 @@ export default function Home() {
   const [skills, setSkills] = useState('');
   const [role, setRole] = useState('');
   const [mode, setMode] = useState('Remote');
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (e: FormEvent) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     
-    // Pro-level validation
     if (!skills.trim()) {
       alert("Please enter target skills to start sniping!");
       return;
@@ -111,21 +110,21 @@ export default function Home() {
               <label className="block text-xs font-semibold text-gray-700 uppercase mb-2">Target Skills</label>
               <div className="relative">
                 <CodeIcon />
-                <input type="text" value={skills} onChange={(e: ChangeEvent<HTMLInputElement>) => setSkills(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none" placeholder="Python, FastAPI..." />
+                <input type="text" value={skills} onChange={(e) => setSkills(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none" placeholder="Python, FastAPI..." />
               </div>
             </div>
             <div className="relative">
               <label className="block text-xs font-semibold text-gray-700 uppercase mb-2">Desired Role</label>
               <div className="relative">
                 <BriefcaseIcon />
-                <input type="text" value={role} onChange={(e: ChangeEvent<HTMLInputElement>) => setRole(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none" placeholder="Backend Engineer..." />
+                <input type="text" value={role} onChange={(e) => setRole(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none" placeholder="Backend Engineer..." />
               </div>
             </div>
             <div className="relative">
               <label className="block text-xs font-semibold text-gray-700 uppercase mb-2">Work Mode</label>
               <div className="relative">
                 <GlobeIcon />
-                <select value={mode} onChange={(e: ChangeEvent<HTMLSelectElement>) => setMode(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none appearance-none">
+                <select value={mode} onChange={(e) => setMode(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none appearance-none">
                   <option>Remote</option><option>Hybrid</option><option>Onsite</option>
                 </select>
               </div>
@@ -146,7 +145,7 @@ export default function Home() {
         </form>
 
         <div className="mt-8 space-y-4">
-          {jobs.map((job: any) => (
+          {jobs.map((job) => (
             <div key={job.id} className="bg-white rounded-xl border border-amber-100 p-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm">
               <div className="flex items-center gap-4 w-full">
                 <div className="w-14 h-14 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
