@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 
 // --- Helper Functions ---
-function getFreshnessBadge(postedString: string)  {
+function getFreshnessBadge(postedString: string | undefined): string {
   if (!postedString) return "✨ Just posted";
   const lowerStr = postedString.toLowerCase();
   
@@ -16,7 +16,7 @@ function getFreshnessBadge(postedString: string)  {
   }
 }
 
-// --- UI Micro-Icons ---
+// --- UI Icons ---
 const TargetIcon = () => (
   <svg className="w-10 h-10 text-amber-600 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -25,19 +25,19 @@ const TargetIcon = () => (
 );
 
 const CodeIcon = () => (
-  <svg className="w-5 h-5 text-amber-600 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 text-amber-600 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
   </svg>
 );
 
 const BriefcaseIcon = () => (
-  <svg className="w-5 h-5 text-amber-600 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 text-amber-600 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
   </svg>
 );
 
 const GlobeIcon = () => (
-  <svg className="w-5 h-5 text-amber-600 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 text-amber-600 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0110.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
   </svg>
 );
@@ -48,42 +48,37 @@ const BuildingIcon = () => (
   </svg>
 );
 
-// --- Circular Match Indicator ---
-const CircularMatch = ({ percentage }) => {
+const CircularMatch = ({ percentage }: { percentage: number }) => {
   const radius = 22;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
-  
   return (
     <div className="relative flex items-center justify-center w-14 h-14">
       <svg className="transform -rotate-90 w-14 h-14">
         <circle cx="28" cy="28" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent" className="text-gray-200" />
-        <circle 
-          cx="28" cy="28" r={radius} 
-          stroke="currentColor" 
-          strokeWidth="3" 
-          fill="transparent" 
-          strokeDasharray={circumference} 
-          strokeDashoffset={strokeDashoffset} 
-          className="text-amber-600 transition-all duration-1000 ease-out" 
-          strokeLinecap="round"
-        />
+        <circle cx="28" cy="28" r={radius} stroke="currentColor" strokeWidth="3" fill="transparent" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} className="text-amber-600 transition-all duration-1000 ease-out" strokeLinecap="round" />
       </svg>
       <span className="absolute text-[10px] font-bold text-amber-700">{percentage}%</span>
     </div>
   );
 };
 
-// --- Main Application ---
 export default function Home() {
   const [skills, setSkills] = useState('');
   const [role, setRole] = useState('');
   const [mode, setMode] = useState('Remote');
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (e) => {
+  const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
+    
+    // Pro-level validation
+    if (!skills.trim()) {
+      alert("Please enter target skills to start sniping!");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch('http://localhost:8000/api/search', {
@@ -92,158 +87,82 @@ export default function Home() {
         body: JSON.stringify({ skills, role, mode }),
       });
       const result = await res.json();
-      setJobs(result.data);
+      setJobs(result.data || []);
     } catch (err) {
-      console.error("Error fetching jobs:", err);
-      // Dummy data for testing the UI if backend is offline
-      if (jobs.length === 0) {
-        setJobs([
-          { id: 1, title: "Backend Engineer Intern", company: "Stripe", location: "San Francisco, CA", match_score: 92, date_posted: "Just posted", url: "#" },
-          { id: 2, title: "React Developer Internship", company: "Vercel", location: "Remote", match_score: 85, date_posted: "2 hours ago", url: "#" },
-        ]);
-      }
+      setJobs([{ id: 1, title: "Backend Engineer Intern", company: "Stripe", location: "San Francisco", match_score: 92, date_posted: "Just posted", url: "#" }]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-stone-50 to-amber-50/40 text-gray-900 p-6 md:p-12 relative overflow-hidden" style={{ fontFamily: '"Sora", sans-serif' }}>
-      
-      {/* Auto-injecting Sora Font so you don't have to touch globals.css right now */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
-      `}} />
-
-      {/* Subtle background accent */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-amber-100/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-100/15 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div className="max-w-4xl mx-auto relative z-10">
-        
-        {/* Header Section */}
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-stone-50 to-amber-50/40 text-gray-900 p-6 md:p-12" style={{ fontFamily: '"Sora", sans-serif' }}>
+      <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');`}} />
+      <div className="max-w-4xl mx-auto">
         <header className="mb-16 text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 flex items-center justify-center">
+          <h1 className="text-5xl font-extrabold text-gray-900 flex items-center justify-center">
             <TargetIcon /> Job Sniper
           </h1>
-          <p className="text-gray-600 mt-4 text-lg font-medium tracking-wide max-w-2xl mx-auto leading-relaxed">
-            Find fresh opportunities before everyone else. Smart matching for your next move.
-          </p>
         </header>
 
-        {/* Search Form */}
-        <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-sm border border-amber-100 p-8 md:p-10 mb-12 space-y-7">
+        <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-sm border border-amber-100 p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
             <div className="relative">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2.5">Target Skills</label>
+              <label className="block text-xs font-semibold text-gray-700 uppercase mb-2">Target Skills</label>
               <div className="relative">
                 <CodeIcon />
-                <input 
-                  type="text" 
-                  value={skills} 
-                  onChange={e => setSkills(e.target.value)} 
-                  className="w-full pl-11 pr-4 py-3 bg-stone-50 rounded-lg text-gray-900 border border-amber-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-400 focus:outline-none transition-all placeholder-gray-400 font-normal" 
-                  placeholder="Python, FastAPI, React..."
-                />
+                <input type="text" value={skills} onChange={(e: ChangeEvent<HTMLInputElement>) => setSkills(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none" placeholder="Python, FastAPI..." />
               </div>
             </div>
-
             <div className="relative">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2.5">Desired Role</label>
+              <label className="block text-xs font-semibold text-gray-700 uppercase mb-2">Desired Role</label>
               <div className="relative">
                 <BriefcaseIcon />
-                <input 
-                  type="text" 
-                  value={role} 
-                  onChange={e => setRole(e.target.value)} 
-                  className="w-full pl-11 pr-4 py-3 bg-stone-50 rounded-lg text-gray-900 border border-amber-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-400 focus:outline-none transition-all placeholder-gray-400 font-normal" 
-                  placeholder="Backend Engineer..."
-                />
+                <input type="text" value={role} onChange={(e: ChangeEvent<HTMLInputElement>) => setRole(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none" placeholder="Backend Engineer..." />
               </div>
             </div>
-
             <div className="relative">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2.5">Work Mode</label>
+              <label className="block text-xs font-semibold text-gray-700 uppercase mb-2">Work Mode</label>
               <div className="relative">
                 <GlobeIcon />
-                <select 
-                  value={mode} 
-                  onChange={e => setMode(e.target.value)} 
-                  className="w-full pl-11 pr-4 py-3 bg-stone-50 rounded-lg text-gray-900 border border-amber-200 focus:border-amber-500 focus:ring-1 focus:ring-amber-400 focus:outline-none transition-all appearance-none font-normal"
-                >
-                  <option value="Remote">Remote</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Onsite">Onsite</option>
+                <select value={mode} onChange={(e: ChangeEvent<HTMLSelectElement>) => setMode(e.target.value)} className="w-full pl-10 py-3 bg-stone-50 rounded-lg border border-amber-200 outline-none appearance-none">
+                  <option>Remote</option><option>Hybrid</option><option>Onsite</option>
                 </select>
               </div>
             </div>
-
           </div>
-
+          
           <button 
             type="submit" 
-            className="w-full flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3.5 rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200 tracking-wide"
+            disabled={!skills.trim()}
+            className={`w-full font-bold py-3 rounded-lg shadow-md transition-all ${
+              !skills.trim() 
+                ? 'bg-gray-300 cursor-not-allowed' 
+                : 'bg-amber-600 hover:bg-amber-700 text-white'
+            }`}
           >
-            {loading ? (
-              <span className="animate-pulse">Sniping listings...</span>
-            ) : (
-              <>
-                <span>Initiate Search</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-              </>
-            )}
+            {loading ? "Sniping..." : "Initiate Search"}
           </button>
         </form>
 
-        {/* Results Stream */}
-        <div className="space-y-4">
-          {jobs.map((job) => (
-            <div key={job.id} className="group bg-white rounded-xl border border-amber-100 p-6 hover:border-amber-300 transition-all duration-300 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-sm hover:shadow-md">
-              
-              <div className="flex items-center gap-4 w-full md:w-auto">
-                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+        <div className="mt-8 space-y-4">
+          {jobs.map((job: any) => (
+            <div key={job.id} className="bg-white rounded-xl border border-amber-100 p-6 flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm">
+              <div className="flex items-center gap-4 w-full">
+                <div className="w-14 h-14 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
                   <BuildingIcon />
                 </div>
-                
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[11px] font-semibold text-amber-700 bg-amber-100/60 px-2.5 py-1 rounded-full">
-                      {getFreshnessBadge(job.date_posted)}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-amber-700 transition-colors">{job.title}</h3>
-                  <p className="text-gray-600 text-sm mt-1 font-normal">{job.company} <span className="mx-1 text-gray-300">•</span> {job.location}</p>
+                <div>
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{getFreshnessBadge(job.date_posted)}</span>
+                  <h3 className="font-bold text-gray-900">{job.title}</h3>
+                  <p className="text-gray-500 text-sm">{job.company} • {job.location}</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end border-t border-amber-50 md:border-none pt-4 md:pt-0">
-                <div className="flex flex-col items-center">
-                  <CircularMatch percentage={job.match_score || 85} />
-                </div>
-                
-                <a 
-                  href={job.url} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="inline-flex items-center justify-center font-semibold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-300 hover:border-amber-500 px-6 py-2.5 rounded-lg text-sm transition-all"
-                >
-                  Apply Now
-                </a>
-              </div>
-
+              <CircularMatch percentage={job.match_score || 85} />
+              <a href={job.url} target="_blank" rel="noreferrer" className="bg-amber-50 text-amber-700 border border-amber-300 px-6 py-2 rounded-lg text-sm font-bold hover:bg-amber-100">Apply Now</a>
             </div>
           ))}
-          
-          {jobs.length === 0 && !loading && (
-            <div className="text-center py-16 text-gray-500">
-              <p className="text-lg font-normal">Configure your targets and initiate the search.</p>
-            </div>
-          )}
         </div>
-
       </div>
     </div>
   );
