@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 // --- Helper Functions ---
-function getFreshnessBadge(postedString) {
+function getFreshnessBadge(postedString: string)  {
   if (!postedString) return "✨ Just posted";
   const lowerStr = postedString.toLowerCase();
   
