@@ -124,7 +124,7 @@ export default function Home() {
         {/* Header Section */}
         <header className="mb-16 text-center">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 flex items-center justify-center">
-            <TargetIcon /> Internship Sniper
+            <TargetIcon /> Job Sniper
           </h1>
           <p className="text-gray-600 mt-4 text-lg font-medium tracking-wide max-w-2xl mx-auto leading-relaxed">
             Find fresh opportunities before everyone else. Smart matching for your next move.
