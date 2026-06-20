@@ -1,11 +1,11 @@
 import os
 import requests
-import datetime
 import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from dotenv import load_dotenv
+load_dotenv()
 app = FastAPI()
 
 app.add_middleware(
@@ -45,13 +45,14 @@ def calculate_match_score(user_skills: str, job_snippet: str, job_title: str) ->
 def fetch_from_wire(query: SearchQuery):
     url = "https://anakin.io/v1/wire/task" 
     
+    # Updated: Using Bearer token format for proper authentication
     headers = {
-        "X-API-Key": ANAKIN_API_KEY,
+        "Authorization": f"Bearer {ANAKIN_API_KEY}",
         "Content-Type": "application/json"
     }
     
-    # 1. THE EXACT MATCH FIX: We put quotes around the skills so Indeed stops guessing
-    exact_search = f'"{query.skills}" {query.role} internship'
+    # 🎯 Job Sniper: Clean query without redundant "internship" keyword
+    exact_search = f'"{query.skills}" {query.role}'
     
     payload = {
         "action_id": "in_search_jobs",
@@ -65,7 +66,7 @@ def fetch_from_wire(query: SearchQuery):
     }
     
     try:
-        print(f"🚀 Sniping exact match via Anakin Wire: {exact_search}")
+        print(f"🎯 Job Sniper: Sniping live results for: {exact_search}")
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         wire_data = response.json()
@@ -89,11 +90,11 @@ def fetch_from_wire(query: SearchQuery):
         for i, item in enumerate(results):  
             score = calculate_match_score(query.skills, item.get("snippet", ""), item.get("title", ""))
             
-            # 2. THE KILL SWITCH: Only keep the job if the score is 80% or higher!
-            if score >= 80:
+            # Kill switch: Only keep the job if the score is 70% or higher
+            if score >= 70:
                 jobs.append({
                     "id": str(item.get("job_key", i)),
-                    "title": item.get("title", "New Internship"),
+                    "title": item.get("title", "New Opportunity"),
                     "company": item.get("company", "Unknown Company"),
                     "location": item.get("location", query.mode),
                     "date_posted": item.get("date_posted", "Just posted"), 
